@@ -1,0 +1,55 @@
+# nginx proxy address - http://172.17.0.1:8091
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "5m"
+    max-file: "1"
+
+services:
+  moodle:
+    image: bitnami/moodle:latest
+    container_name: moodle-app
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - moodle
+    ports:
+      - "8091:8080"
+    environment:
+      TZ: ${TZ:-America/New_York}
+    volumes:
+      - ./rootfs/data/moodle:/data
+      - ./rootfs/config/moodle:/config
+    depends_on:
+      - moodle-db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  moodle-db:
+    image: mariadb:11
+    container_name: moodle-db
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - moodle
+    environment:
+      TZ: ${TZ:-America/New_York}
+      MARIADB_DATABASE: ${DB_CREATE_DATABASE_NAME:-moodle}
+      MARIADB_USER: ${DB_USER_NAME:-moodle}
+      MARIADB_PASSWORD: ${DB_USER_PASS:-changeme_db_password}
+      MARIADB_ROOT_PASSWORD: ${DB_ADMIN_PASS:-changeme_root_password}
+    volumes:
+      - ./rootfs/db/mariadb/moodle:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  moodle:
+    external: false
