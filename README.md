@@ -50,9 +50,9 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/data/moodle` - Data storage
-- `./rootfs/config/moodle` - Data storage
-- `./rootfs/data/db/mariadb/moodle` - Data storage
+- `./volumes/data/moodle` - Data storage
+- `./volumes/config/moodle` - Data storage
+- `./volumes/data/db/mariadb/moodle` - Data storage
 
 ## 🔐 Security
 
