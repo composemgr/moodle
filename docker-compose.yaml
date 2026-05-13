@@ -1,5 +1,6 @@
 # nginx proxy address - http://172.17.0.1:8091
 
+name: moodle
 x-logging: &default-logging
   driver: json-file
   options:
@@ -7,32 +8,46 @@ x-logging: &default-logging
     max-file: "1"
 
 services:
-  moodle:
+  app:
     image: bitnami/moodle:latest
+    pull_policy: always
     container_name: moodle-app
-    restart: unless-stopped
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
     logging: *default-logging
     networks:
       - moodle
     ports:
-      - "8091:8080"
+      - "172.17.0.1:8091:8080"
     environment:
       TZ: ${TZ:-America/New_York}
+      MOODLE_DATABASE_HOST: moodle-db
+      MOODLE_DATABASE_PORT_NUMBER: 3306
+      MOODLE_DATABASE_NAME: ${DB_CREATE_DATABASE_NAME:-moodle}
+      MOODLE_DATABASE_USER: ${DB_USER_NAME:-moodle}
+      MOODLE_DATABASE_PASSWORD: ${DB_USER_PASS:-changeme_db_password}
+      MOODLE_USERNAME: ${APP_ADMIN_USER:-administrator}
+      MOODLE_PASSWORD: ${APP_ADMIN_PASS:-changeme_admin_password}
+      MOODLE_EMAIL: ${APP_ADMIN_EMAIL:-admin@example.com}
+      MOODLE_SITE_NAME: ${APP_SITE_NAME:-Moodle}
     volumes:
-      - ./volumes/data/moodle:/data
-      - ./volumes/config/moodle:/config
+      - ./volumes/data/moodle:/bitnami/moodle
+      - ./volumes/data/moodledata:/bitnami/moodledata
     depends_on:
-      - moodle-db
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  moodle-db:
-    image: mariadb:11
+  db:
+    image: mariadb:latest
+    pull_policy: always
     container_name: moodle-db
-    restart: unless-stopped
+    hostname: moodle-db
+    restart: always
     logging: *default-logging
     networks:
       - moodle
@@ -41,7 +56,7 @@ services:
       MARIADB_DATABASE: ${DB_CREATE_DATABASE_NAME:-moodle}
       MARIADB_USER: ${DB_USER_NAME:-moodle}
       MARIADB_PASSWORD: ${DB_USER_PASS:-changeme_db_password}
-      MARIADB_ROOT_PASSWORD: ${DB_ADMIN_PASS:-changeme_root_password}
+      MARIADB_ROOT_PASSWORD: ${DB_ADMIN_PASS:-changeme_admin_password}
     volumes:
       - ./volumes/data/db/mariadb/moodle:/var/lib/mysql
     healthcheck:
@@ -52,4 +67,5 @@ services:
 
 networks:
   moodle:
+    name: moodle
     external: false
