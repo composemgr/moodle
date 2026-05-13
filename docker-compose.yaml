@@ -33,7 +33,7 @@ services:
       MOODLE_USERNAME: ${APP_ADMIN_USER:-administrator}
       MOODLE_PASSWORD: ${APP_ADMIN_PASS:-changeme_admin_password}
       MOODLE_EMAIL: ${APP_ADMIN_USER:-admin@example.com}
-      MOODLE_SITE_NAME: ${APP_SITE_NAME:-Moodle}
+      MOODLE_SITE_NAME: ${APP_ORG_NAME:-Moodle}
     volumes:
       - ./volumes/data/moodle:/bitnami/moodle
       - ./volumes/data/moodledata:/bitnami/moodledata
